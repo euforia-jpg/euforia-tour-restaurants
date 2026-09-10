@@ -1,0 +1,66 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="네이버 유포리아 인증맛집">
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#03C75A"/>
+      <stop offset="100%" stop-color="#029A46"/>
+    </linearGradient>
+    <path id="circlePath" d="M 150,150 m -95,0 a 95,95 0 1,1 190,0 a 95,95 0 1,1 -190,0"/>
+  </defs>
+
+  <!-- outer green disc -->
+  <circle cx="150" cy="150" r="140" fill="url(#ringGrad)"/>
+
+  <!-- scalloped edge (small circles around perimeter) -->
+  <g fill="#03C75A">
+    <circle cx="150" cy="12" r="10"/>
+    <circle cx="196" cy="22" r="10"/>
+    <circle cx="235" cy="49" r="10"/>
+    <circle cx="264" cy="88" r="10"/>
+    <circle cx="282" cy="134" r="10"/>
+    <circle cx="282" cy="166" r="10"/>
+    <circle cx="264" cy="212" r="10"/>
+    <circle cx="235" cy="251" r="10"/>
+    <circle cx="196" cy="278" r="10"/>
+    <circle cx="150" cy="288" r="10"/>
+    <circle cx="104" cy="278" r="10"/>
+    <circle cx="65" cy="251" r="10"/>
+    <circle cx="36" cy="212" r="10"/>
+    <circle cx="18" cy="166" r="10"/>
+    <circle cx="18" cy="134" r="10"/>
+    <circle cx="36" cy="88" r="10"/>
+    <circle cx="65" cy="49" r="10"/>
+    <circle cx="104" cy="22" r="10"/>
+  </g>
+
+  <!-- inner white circle -->
+  <circle cx="150" cy="150" r="118" fill="#ffffff" stroke="url(#ringGrad)" stroke-width="6"/>
+
+  <!-- curved top text -->
+  <text font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="19" font-weight="700" fill="#02742F" letter-spacing="1.5">
+    <textPath xlink:href="#circlePath" startOffset="14%" text-anchor="middle">NAVER · EUFORIA TOUR</textPath>
+  </text>
+
+  <!-- fork & knife icon -->
+  <g transform="translate(150,118)" stroke="#03C75A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <line x1="-40" y1="-20" x2="-40" y2="24"/>
+    <line x1="-48" y1="-20" x2="-48" y2="-2"/>
+    <line x1="-32" y1="-20" x2="-32" y2="-2"/>
+    <path d="M -48,-2 Q -40,6 -32,-2"/>
+    <path d="M 32,-20 Q 44,-12 32,-2 L 32,24"/>
+  </g>
+
+  <!-- main word -->
+  <text x="150" y="172" font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="32" font-weight="800" fill="#1a1a1a" text-anchor="middle">인증맛집</text>
+
+  <!-- underline -->
+  <line x1="103" y1="188" x2="197" y2="188" stroke="#03C75A" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- bottom curved text -->
+  <text font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14" font-weight="600" fill="#029A46" letter-spacing="2.5">
+    <textPath xlink:href="#circlePath" startOffset="58%" text-anchor="middle">VERIFIED RESTAURANT</textPath>
+  </text>
+
+  <!-- small stars -->
+  <polygon points="0,-8 2.4,-2.5 8,-2.5 3.6,1.2 5.2,7 0,3.6 -5.2,7 -3.6,1.2 -8,-2.5 -2.4,-2.5" fill="#03C75A" transform="translate(65,150)"/>
+  <polygon points="0,-8 2.4,-2.5 8,-2.5 3.6,1.2 5.2,7 0,3.6 -5.2,7 -3.6,1.2 -8,-2.5 -2.4,-2.5" fill="#03C75A" transform="translate(235,150)"/>
+</svg>

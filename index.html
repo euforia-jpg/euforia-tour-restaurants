@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euforia Tour 맛집 앱</title>
+<style>
+  :root {
+    --fine: #7C3AED;
+    --value: #16A34A;
+    --rooftop: #0EA5E9;
+    --seafood: #F97316;
+    --market: #0D9488;
+    --dessert: #DB2777;
+    --korean: #DC2626;
+    --chinese: #CA8A04;
+    --ink: #1A1A2E;
+    --sub: #6B6B80;
+    --bg: #F4F3FB;
+    --card: #FFFFFF;
+    --border: #ECEAF6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .app { max-width: 1080px; margin: 0 auto; padding-bottom: 60px; }
+
+  .hero {
+    background: linear-gradient(120deg, #7C3AED 0%, #DB2777 45%, #F97316 100%);
+    padding: 40px 24px 84px;
+    text-align: center;
+    color: #fff;
+    border-radius: 0 0 28px 28px;
+  }
+  .hero h1 { font-size: 26px; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.4px; }
+  .hero p { margin: 0; font-size: 14px; opacity: 0.92; }
+
+  .searchbar {
+    max-width: 680px;
+    margin: -46px auto 0;
+    padding: 0 20px;
+  }
+  .searchbar input {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 15px;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(80,40,140,0.18);
+    outline: none;
+    font-family: inherit;
+  }
+  .searchbar input::placeholder { color: #A7A5BE; }
+
+  .countrytabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 26px 20px 0;
+  }
+  .countrytabs button {
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 10px 26px;
+    border-radius: 999px;
+    border: none;
+    background: #fff;
+    color: var(--sub);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: all .15s;
+  }
+  .countrytabs button.active { color: #fff; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
+  .countrytabs button[data-country="spain"].active { background: linear-gradient(135deg,#AA151B,#F1BF00); }
+  .countrytabs button[data-country="portugal"].active { background: linear-gradient(135deg,#046A38,#DA291C); }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 16px 20px 4px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button {
+    flex: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: none;
+    background: #fff;
+    color: var(--sub);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tabs button.active { color: #fff; background: var(--ink); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 20px 6px;
+  }
+  .chips button {
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--sub);
+    transition: all .15s;
+  }
+  .chips button.active { color: #fff; border-color: transparent; }
+  .chips button[data-toggle="certified"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px 7px 8px;
+    color: #02742F;
+    border-color: #6EDBA0;
+    background: #F2FCF7;
+  }
+  .chips button[data-toggle="certified"] img { width: 17px; height: 17px; display: block; }
+  .chips button[data-toggle="certified"].active { background: #03C75A; color: #fff; border-color: transparent; }
+  .chips button[data-cat="fine"].active { background: var(--fine); }
+  .chips button[data-cat="value"].active { background: var(--value); }
+  .chips button[data-cat="rooftop"].active { background: var(--rooftop); }
+  .chips button[data-cat="seafood"].active { background: var(--seafood); }
+  .chips button[data-cat="market"].active { background: var(--market); }
+  .chips button[data-cat="dessert"].active { background: var(--dessert); }
+  .chips button[data-cat="korean"].active { background: var(--korean); }
+  .chips button[data-cat="chinese"].active { background: var(--chinese); }
+  .chips button[data-cat="all"].active { background: var(--ink); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    padding: 16px 20px 8px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(30,20,60,0.06);
+    border-left: 5px solid var(--ink);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(30,20,60,0.12); }
+  .card[data-cat="fine"] { border-left-color: var(--fine); }
+  .card[data-cat="value"] { border-left-color: var(--value); }
+  .card[data-cat="rooftop"] { border-left-color: var(--rooftop); }
+  .card[data-cat="seafood"] { border-left-color: var(--seafood); }
+  .card[data-cat="market"] { border-left-color: var(--market); }
+  .card[data-cat="dessert"] { border-left-color: var(--dessert); }
+  .card[data-cat="korean"] { border-left-color: var(--korean); }
+  .card[data-cat="chinese"] { border-left-color: var(--chinese); }
+
+  .card .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .card h3 { font-size: 16px; font-weight: 800; margin: 0; }
+  .price { font-size: 11.5px; font-weight: 800; color: #fff; background: var(--ink); padding: 3px 9px; border-radius: 8px; white-space: nowrap; }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .card[data-cat="fine"] .tag { background: var(--fine); }
+  .card[data-cat="value"] .tag { background: var(--value); }
+  .card[data-cat="rooftop"] .tag { background: var(--rooftop); }
+  .card[data-cat="seafood"] .tag { background: var(--seafood); }
+  .card[data-cat="market"] .tag { background: var(--market); }
+  .card[data-cat="dessert"] .tag { background: var(--dessert); }
+  .card[data-cat="korean"] .tag { background: var(--korean); }
+  .card[data-cat="chinese"] .tag { background: var(--chinese); }
+
+  .badge-reserve {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin: 0 0 8px 6px;
+    color: #B45309;
+    background: #FEF3C7;
+    border: 1.5px solid #FCD34D;
+    white-space: nowrap;
+  }
+
+  .badge-certified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 9px 2px 4px;
+    border-radius: 999px;
+    margin: 0 0 8px 6px;
+    color: #02742F;
+    background: #E7F9EF;
+    border: 1.5px solid #6EDBA0;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .badge-certified img { width: 15px; height: 15px; display: block; }
+
+  .desc { font-size: 13px; color: var(--sub); margin: 0; line-height: 1.55; }
+
+  .empty { text-align: center; color: var(--sub); font-size: 14px; padding: 40px 20px; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    padding: 4px 20px 0;
+    font-size: 11.5px;
+    color: var(--sub);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  footer {
+    max-width: 1040px;
+    margin: 30px auto 0;
+    padding: 18px 20px 0;
+    font-size: 12px;
+    color: var(--sub);
+    border-top: 1px solid var(--border);
+  }
+
+  @media print {
+    .tabs, .chips, .searchbar, .countrytabs { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hero">
+    <h1>Euforia Tour 맛집 앱</h1>
+    <p>스페인 · 포르투갈 18개 도시 맛집 큐레이션</p>
+  </div>
+
+  <div class="searchbar">
+    <input type="text" id="search" placeholder="식당 이름이나 키워드로 검색 (예: 해산물, 루프탑, 핀초스)">
+  </div>
+
+  <div class="countrytabs" id="countrytabs">
+    <button class="active" data-country="spain">스페인</button>
+    <button data-country="portugal">포르투갈</button>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="chips" id="chips">
+    <button class="active" data-cat="all">전체</button>
+    <button data-cat="fine">미쉐린·파인다이닝</button>
+    <button data-cat="value">가성비·로컬</button>
+    <button data-cat="rooftop">루프탑·뷰</button>
+    <button data-cat="seafood">해산물</button>
+    <button data-cat="market">마켓·푸드홀</button>
+    <button data-cat="dessert">디저트·카페</button>
+    <button data-cat="korean">한식</button>
+    <button data-cat="chinese">중식</button>
+    <button data-toggle="certified" id="certifiedToggle" aria-pressed="false"><img src="badge-verified.svg" alt="">인증맛집만</button>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--fine)"></i>미쉐린·파인다이닝</span>
+    <span><i style="background:var(--value)"></i>가성비·로컬</span>
+    <span><i style="background:var(--rooftop)"></i>루프탑·뷰</span>
+    <span><i style="background:var(--seafood)"></i>해산물</span>
+    <span><i style="background:var(--market)"></i>마켓·푸드홀</span>
+    <span><i style="background:var(--dessert)"></i>디저트·카페</span>
+    <span><i style="background:var(--korean)"></i>한식</span>
+    <span><i style="background:var(--chinese)"></i>중식</span>
+    <span><span class="badge-certified" style="margin:0"><img src="badge-verified.svg" alt="">인증맛집</span>네이버 · 유포리아투어 인증 로컬 맛집</span>
+    <span><span class="badge-reserve" style="margin:0">예약필수</span>사전 예약 없이는 입장이 어려운 곳</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none;">검색 결과가 없습니다.</div>
+
+  <footer>
+    ※ 미쉐린 스타 및 인기 레스토랑은 사전 예약이 필수이며, 일부는 수개월 전 예약이 필요할 수 있습니다.
+    가격대(€~€€€€)와 셰프/메뉴 구성은 시즌에 따라 변동될 수 있어 투어 확정 전 최신 정보 재확인을 권장드립니다.
+  </footer>
+
+</div>
+
+<script>
+const CITIES = [
+  {id:'barcelona', name:'바르셀로나', country:'spain'},
+  {id:'madrid', name:'마드리드', country:'spain'},
+  {id:'sevilla', name:'세비야', country:'spain'},
+  {id:'granada', name:'그라나다', country:'spain'},
+  {id:'cordoba', name:'코르도바', country:'spain'},
+  {id:'valencia', name:'발렌시아', country:'spain'},
+  {id:'ronda', name:'론다', country:'spain'},
+  {id:'toledo', name:'톨레도', country:'spain'},
+  {id:'segovia', name:'세고비아', country:'spain'},
+  {id:'sansebastian', name:'산세바스티안', country:'spain'},
+  {id:'bilbao', name:'빌바오', country:'spain'},
+  {id:'zaragoza', name:'사라고사', country:'spain'},
+  {id:'avila', name:'아빌라', country:'spain'},
+  {id:'lisboa', name:'리스본', country:'portugal'},
+  {id:'porto', name:'포르투', country:'portugal'},
+  {id:'sintra', name:'신트라', country:'portugal'},
+  {id:'obidos', name:'오비두스', country:'portugal'},
+  {id:'nazare', name:'나사레', country:'portugal'},
+];
+
+const R = [
+  {city:'barcelona', cat:'fine', name:'Lasarte', price:'€€€€', tag:'미쉐린 3스타', reserve:true, desc:'Martín Berasategui 셰프. Hotel Condes de Barcelona 내 위치. 수 주 전 사전 예약 필수.'},
+  {city:'barcelona', cat:'fine', name:'Disfrutar', price:'€€€€', tag:'미쉐린 3스타', reserve:true, desc:'elBulli 출신 셰프 3인 운영. 창의적 코스 요리. 예약 극히 치열(수개월 전).'},
+  {city:'barcelona', cat:'rooftop', name:'Ohla Barcelona 루프탑', price:'€€€', tag:'루프탑 · 뷰', desc:'고딕 지구, 바르셀로나 대성당 전경. 상그리아·칵테일과 씨푸드·스테이크 메뉴.'},
+  {city:'barcelona', cat:'rooftop', name:'Mirabé', price:'€€€', tag:'루프탑 · 뷰', desc:'티비다보 언덕에 위치, 바르셀로나 시내 전경이 한눈에 펼쳐지는 파노라마 뷰. 카넬로니·볼살 스튜 등 지중해 요리, 기념일·로맨틱한 자리로 인기.'},
+  {city:'barcelona', cat:'seafood', name:'7 Portes', price:'€€€', tag:'해산물 · 전통', desc:'1836년 개업, 피카소 단골로 유명한 카탈루냐 명가. 해산물 파에야 대표.'},
+  {city:'barcelona', cat:'seafood', name:'El Glop', price:'€€', tag:'빠에야 전문', desc:'해산물 빠에야·이베리코 돼지고기·샹그리아 세트 인기. 시내 3개 지점, 한국인 입맛에 잘 맞음.'},
+  {city:'barcelona', cat:'seafood', name:'Marina Bay', price:'€€€', tag:'해산물 · 빠에야', desc:'바르셀로네타 해변 인근. 깔라마레스 로마노, 사르수엘라, 문어·대구 요리 등 푸짐한 해산물 코스.'},
+  {city:'barcelona', cat:'value', name:'Cal Pep', price:'€€', tag:'타파스 · 가성비', desc:'오픈키친 스타일 타파스 바. 현지인·관광객 모두 인기, 대기 감안 필요.'},
+  {city:'barcelona', cat:'value', name:'Cervecería Catalana', price:'€€', tag:'타파스 · 가성비', desc:'감바스, 핀초스, 이베리코 타파스. 활기찬 로컬 분위기.'},
+  {city:'barcelona', cat:'value', name:'El Xampanyet', price:'€', tag:'카바 바', desc:'1929년 전통 카바(스파클링 와인) 바. 고딕 지구, 스탠딩 캐주얼.'},
+  {city:'barcelona', cat:'value', name:'Quimet i Quimet', price:'€€', tag:'몬타디토 · 전통 로컬', desc:"1914년부터 5대째 운영 중인 작은 스탠딩 바. 통조림·햄·해산물을 올린 오픈샌드위치 '몬타디토' 명가, 포블레 섹 지구."},
+  {city:'barcelona', cat:'rooftop', name:'Mirablau', price:'€€€', tag:'루프탑 · 바 & 클럽', desc:'티비다보 언덕, 도토르 안드레우 광장에 위치한 25년 넘은 전통의 바 겸 레스토랑. 바닥부터 천장까지 통유리창 너머로 펼쳐지는 바르셀로나 시내·지중해 파노라마 뷰가 일품. 밤에는 나이트클럽으로 변신해 늦은 시간까지 칵테일을 즐길 수 있음.'},
+  {city:'barcelona', cat:'seafood', name:'Martínez (Arroces y Brasas)', price:'€€€', tag:'빠에야 · 몬주익 뷰', desc:'몬주익 언덕, 미라마르 호텔 인근에 위치. 신선한 해산물로 만든 7가지 빠에야와 장작 그릴 요리가 시그니처, 항구와 시내 전경이 펼쳐지는 테라스로 유명. 오바마·스필버그 가족이 다녀간 곳으로도 화제.'},
+  {city:'barcelona', cat:'rooftop', name:'El Xalet de Montjuïc', price:'€€€€', tag:'루프탑 · 회전 다이닝룸', desc:'몬주익 언덕 푸니쿨라 승강장 인근, 1929년 만국박람회 당시 지어진 건물. 회전하는 다이닝룸과 대형 파노라마 테라스에서 바르셀로나 전경을 감상하며 지중해·카탈루냐 요리를 즐길 수 있음.'},
+  {city:'barcelona', cat:'fine', name:'Can Cortada', price:'€€€', tag:'전통 명가 · 마시아', desc:'11세기 성채에서 유래한 오르타 지구의 전통 마시아(농가주택)를 개조한 레스토랑. 넓은 정원에 둘러싸여 있으며, 양질의 카탈루냐산 고기 구이와 대구 요리 등 전통 코스가 대표 메뉴.'},
+  {city:'barcelona', cat:'value', name:'Nou Can Martí', price:'€€', tag:'칼솟 · 전통 로컬', desc:'콜세롤라 산자락에 위치, 자연 속에서 바르셀로나 360도 전망을 즐길 수 있는 유일한 레스토랑. 장작불에 구운 칼솟(11~4월 제철)과 그릴 고기가 시그니처, 주말엔 라이브 음악으로 활기찬 분위기.'},
+  {city:'barcelona', cat:'korean', name:'Restaurant Coreà Kamasot', price:'€€', tag:'한식당 · 한국식 바베큐', desc:'에이샴플라 지구 Consell de Cent 465 위치. 테이블마다 불판이 설치되어 있어 고기와 채소를 직접 구워 먹는 한국식 바베큐가 대표. 김치찌개·비빔밥 등 정통 메뉴와 만두·김치전·떡볶이·두부김치 등 안주류(8~13유로대)를 갖췄고 소주·맥주도 준비. 구글 평점 4.5, 2인 45유로 안팎. 대기 방지를 위해 예약 권장.'},
+  {city:'barcelona', cat:'korean', name:'Gayagum 가야금', price:'€€', tag:'한식당 · 점심 메뉴 가성비', desc:'전통 악기 가야금에서 이름을 딴 아담한 가족 운영 한식당(그라시아 Sant Gabriel 2 / 에이샴플라 Londres 84). 비빔밥·파전·잡채와 양념갈비·주물럭 등 테이블 구이 메뉴가 인기이며 반찬 구성이 알차다는 평. 15.90유로 점심 메뉴가 양·가격 모두 만족도 높음, 구글 평점 4.6. 좌석이 많지 않아 단체보다는 소규모 방문에 적합.'},
+  {city:'barcelona', cat:'korean', name:'SEOUL NADRI 서울나들이', price:'€€', tag:'한식당 · 평점 4.9', desc:'에이샴플라 Roger de Llúria 24 위치, "한국식 바베큐 + 클래식 한식"을 내세운 인기 한식당. 돌솥비빔밥과 테이블 숯불 구이가 대표이며 이베리코 삼겹살·김치찌개·냉면·국물 요리 평이 좋음. 치즈케이크·팬케이크 등 디저트와 소주·와인도 구비. 리뷰 1,000건 이상 기준 평점 4.9로 바르셀로나 한식당 중 최상위권. 예약은 전화 또는 인스타그램 DM.'},
+  {city:'barcelona', cat:'korean', name:'Restaurante KANGNAM 강남', price:'€€', tag:'한식당 · 캄노우 인근', desc:'서울 강남에서 이름을 딴 산츠 지구 Jaume Roig 8의 아담한 한식당(메트로 Badal역, 캄 노우 인근). K-POP이 흐르는 아늑한 분위기에서 양념 치킨, 김치·새우 만두, 돌솥 불고기 덮밥, 라면, 잡채 등을 제공. 뚝배기 만둣국 세트(반찬 3종·공깃밥 포함) 13.9유로, 비건 메뉴 28유로. 양이 푸짐하고 서비스 평이 좋으며 만석이 잦아 사전 예약 권장.'},
+  {city:'barcelona', cat:'fine', name:'Amar Barcelona (아마르 바르셀로나)', price:'€€€€', tag:'미쉐린 가이드 · 해산물 파인다이닝', reserve:true, desc:'그란 비아 668번지 5성급 호텔 The Palace Barcelona(옛 리츠) 안에 자리한 라파 사프라(Rafa Zafra) 셰프의 해산물 파인다이닝. 마드리드·바르셀로나의 Estimar와 같은 계열로, 카탈루냐어 "사랑하다"에서 이름을 따왔음. 굴과 캐비아, 무게를 달아 파는 최상급 생선을 회·마리네이드·염장·찜·튀김·숯불구이까지 다양하게 조리하며, 로시니 안심 스테이크 같은 숙성육과 호텔의 리츠 시절을 기리는 클래식 메뉴, 바다를 주제로 한 테이스팅 코스 "Amar Lentamente"도 운영. 1919년에 지어진 다이닝룸의 푸른 벽면·금장 몰딩·샹들리에가 만드는 우아한 분위기가 특징으로, 기념일 만찬에 어울림. 화~목 저녁, 금·토 점심과 저녁만 영업(일·월 휴무)하며 좌석이 한정적이라 사전 예약 필수.'},
+  {city:'barcelona', cat:'market', name:'El Nacional Barcelona', price:'€€€', tag:'멀티 다이닝 · 그라시아 거리', desc:'파세이그 데 그라시아 24번지, 1889년 건물을 개조해 2014년 문을 연 바르셀로나 최초의 멀티스페이스 레스토랑. 2,600㎡ 공간에 700석 이상을 갖췄고 카페극장·염색공장·자동차 대리점·주차장을 거친 모더니즘 산업 건축 양식이 그대로 보존되어 있음. 한 지붕 아래 4개의 레스토랑(고기 전문 La Braseria, 생선 전문 La Llotja, 타파스·쌀요리 La Tapería, 간단식·베이커리 La Parada)과 맥주·통조림, 와인·하몬, 굴, 칵테일 전문 바 4곳이 함께 있어 일행마다 취향이 달라도 한 자리에서 해결 가능. 이베리아반도 각 지역의 전통 요리를 두루 맛볼 수 있고 낮 12시부터 새벽 2시까지 영업해 늦은 저녁 식사나 야식에도 좋음.'},
+  {city:'barcelona', cat:'seafood', name:'CAN RIBES', price:'€€', tag:'빠에야 · 노르드 터미널 인근', desc:'에이샴플라 Carrer de Ribes 19번지, 노르드 버스터미널 택시 승강장 바로 맞은편의 지중해 요리 레스토랑. 해산물 빠에야가 대표 메뉴로 쌀 위에 해산물을 넉넉히 올려주는 것으로 평이 좋고, 오징어 먹물 아로스 네그레·모둠 해산물 플래터·크레마 카탈라나도 인기. 2인용 고기 빠에야가 33유로 안팎이지만 실제로는 3~4인이 나눠 먹을 만큼 양이 푸짐하고, 2인 기준 해산물 플래터에 와인·맥주를 곁들여 70유로 선. 트립어드바이저 트래블러스 초이스 수상, 친절하고 여유로운 서비스와 식후 리몬첼로 서비스로 호평. 넓고 밝은 실내와 테라스석, 단체용 룸을 갖춰 일행 규모가 커도 편하며 예약 가능.'},
+  {city:'barcelona', cat:'value', name:'[쯔양먹방] La Flauta', price:'€€', tag:'타파스 · 꿀대구 명가', desc:"에이샴플라 Carrer d'Aribau 23번지, 유튜버 쯔양의 바르셀로나 타파스 투어에서 1등 맛집으로 꼽힌 타파스 바. 꿀을 곁들인 대구 튀김(바칼라오 콘 미엘)이 시그니처로 바르셀로나 3대 꿀대구 맛집 중 하나로 통하며, 판 콘 토마테·뽈뽀(문어)·새우와 오징어 꼬치도 대표 메뉴. 예약을 받지 않아 대기를 감안해 방문해야 하고 인근 주차가 어려워 대중교통 이용을 권장."},
+  {city:'barcelona', cat:'value', name:'[쯔양먹방] Los Tortillez', price:'€€', tag:'토르티야 전문 · 로컬', desc:'에이샴플라 Carrer del Consell de Cent 299번지, 스페인식 감자 오믈렛 토르티야를 전문으로 하는 바르셀로나 대표 맛집으로 쯔양이 방문한 곳. 기본 토르티야와 이베리코·초리조를 넣은 버전 등 여러 종류를 갖춰 골라 먹는 재미가 있음. 구글 지도로 예약 가능하며 주차는 유료 노상뿐이라 어려운 편.'},
+  {city:'barcelona', cat:'value', name:"[쯔양먹방] La Bodega d'en Rafel", price:'€€', tag:'셰프 추천 숨은 맛집', desc:'에이샴플라 Carrer de Manso 52번지, 현지 셰프들이 추천하는 숨은 맛집으로 쯔양이 방문한 보데가. 튀김 반죽에 재료를 넣어 튀긴 부뉴엘로스, 까날루네스(카넬로니), 미트볼 요리 알본디가스, 달팽이 요리 카라콜레스가 대표 메뉴. 예약은 가능하나 공식 홈페이지 메일 예약이 가장 확실하며 주차는 유료 노상.'},
+  {city:'barcelona', cat:'seafood', name:'[쯔양먹방] Àncora Restaurant', price:'€€€', tag:'까라비네로 새우 · 보케리아 인근', desc:'구시가 P. de Sant Josep 13번지, 보케리아 시장 바로 옆에 자리한 해산물 레스토랑. 쯔양의 바르셀로나 먹방에서 까라비네로(홍새우) 맛집으로 소개된 곳으로, 크고 붉은 까라비네로 새우 요리와 해산물 파에야가 대표 메뉴. 시장 구경과 함께 동선에 두기 좋음.'},
+  {city:'barcelona', cat:'value', name:'[쯔양먹방] Cerveseria Vaso de Oro', price:'€€', tag:'65년 전통 타파스바', desc:'구시가 Carrer de Balboa 6번지, 바르셀로네타 인근에서 65년째 영업 중인 좁고 긴 스탠딩 타파스 바로 쯔양이 방문한 곳. 참치 샐러드를 비롯한 정통 타파스와 직접 따라주는 생맥주가 유명하고 바 카운터 앞에서 바텐더의 퍼포먼스를 보는 재미가 있음. 예약을 받지 않아 대기가 잦으며 주차는 인근 유료 주차장 이용.'},
+  {city:'barcelona', cat:'dessert', name:'Delacrem', price:'€', tag:'수제 젤라토', desc:"에이샴플라 Carrer d'Enric Granados 15번지의 수제 젤라토 가게. 쯔양이 방문을 시도했으나 대기 줄이 너무 길어 결국 포기한 곳으로(영상에는 실제 방문 장면 없음), 그만큼 현지에서 인기가 높다는 증거. 타파스 투어 후 디저트 코스로 들르기 좋으며 붐비는 시간대를 피하는 편이 좋음."},
+
+  {city:'madrid', cat:'fine', name:'DiverXO', price:'€€€€', tag:'미쉐린 3스타', reserve:true, desc:'Dabiz Muñoz 셰프의 실험적 퓨전 요리. 예약 매우 치열.'},
+  {city:'madrid', cat:'fine', name:'Coque', price:'€€€€', tag:'미쉐린 2스타', reserve:true, desc:'칵테일·주방·다이닝룸을 옮겨 다니는 투어형 코스 경험.'},
+  {city:'madrid', cat:'rooftop', name:'Picalagartos Sky Bar', price:'€€€', tag:'루프탑 · 뷰', desc:'NH Collection Gran Vía 9층, 360도 시내 전망. 8층 레스토랑 예약 가능, 루프탑 바는 선착순.'},
+  {city:'madrid', cat:'rooftop', name:'Ginkgo Sky Bar', price:'€€€', tag:'루프탑 · 뷰', desc:'Plaza de España 인근. 스페인-아시아 퓨전(스시, 이베리코 바오번)과 시그니처 칵테일.'},
+  {city:'madrid', cat:'fine', name:'Botín (보틴)', price:'€€€', tag:'전통 명가', reserve:true, desc:'1725년 개업, 기네스북 등재 세계 최고(最古) 레스토랑. 새끼돼지 통구이(코치니요)가 시그니처.'},
+  {city:'madrid', cat:'value', name:'Latazo (안톤 마틴 시장)', price:'€', tag:'타파스 · 가성비', desc:'현지인들이 즐겨찾는 시장 내 타파스. 관광객 적어 한산한 편.'},
+  {city:'madrid', cat:'market', name:'산 미구엘 시장', price:'€€', tag:'마켓 · 푸드홀', desc:'100년 넘은 역사의 시장. 신선한 해산물 타파스부터 다양한 먹거리를 소량씩 시식.'},
+  {city:'madrid', cat:'dessert', name:'Chocolatería San Ginés', price:'€', tag:'츄러스 · 디저트', desc:'1894년 개업, 마드리드 대표 츄러스 명소. 마요르 광장 인근, 늦은 밤에도 영업.'},
+  {city:'madrid', cat:'value', name:'La Bola', price:'€€', tag:'코시도 · 전통 로컬', desc:'150년 넘은 전통 레스토랑. 병아리콩·소시지·닭고기를 흙냄비에 몇 시간 고아낸 코시도 마드리레뇨 대표 명가.'},
+  {city:'madrid', cat:'value', name:'Bar El Rocío', price:'€€', tag:'타파스 · 가성비', desc:'솔 지구 파사헤 데 마테우 위치, 현지인에게도 사랑받는 타파스 바. 홍합찜·튀긴 오징어·갈릭 새우·버섯구이 등 신선한 타파스가 인기, 평점 4.8의 로컬 맛집.'},
+  {city:'madrid', cat:'value', name:'Malaspina', price:'€€', tag:'타파스 · 전통 타베르나', desc:'브라보 무리요 거리, 차베리 지구의 전통 타베르나. 파타타스 브라바스·우에보스 로토스·빠에야 등 정통 스페인 타파스를 편안한 분위기에서 즐길 수 있음.'},
+  {city:'madrid', cat:'chinese', name:'Restaurante de Sichuan', price:'€€', tag:'정통 쓰촨 요리', desc:'카바예로 데 그라시아 거리 위치, 쓰촨 출신 셰프가 운영하는 정통 쓰촨 요리 전문점. 고추·산초를 쓰촨에서 직수입해 만드는 마라 풍미의 요리로 현지 중국인들에게도 정평.'},
+  {city:'madrid', cat:'value', name:'Mesón del Champiñón', price:'€€', tag:'버섯구이 · 전통 명물', desc:'1964년 개업, 플라자 마요르 인근 카바 데 산 미겔 거리의 전통 타베르나. 마늘·파슬리·초리조로 볶아낸 시그니처 버섯구이(참피뇬)가 명물, 항아리 상그리아와 함께 즐기기 좋음.'},
+  {city:'madrid', cat:'fine', name:'Raza Madrid Chamberí', price:'€€€€', tag:'프리미엄 스테이크하우스', desc:'차베리 지구 에두아르도 다토 거리 위치, 아르헨티나·핀란드·스페인산 프리미엄 소고기를 취급하는 그릴 레스토랑. 와규 타르타르와 1kg 초대형 촐레톤(티본)이 시그니처, 우아한 분위기의 미식 스테이크하우스.'},
+  {city:'madrid', cat:'chinese', name:'Shishang (Shi-Shang)', price:'€', tag:'채식 뷔페 · 중식', desc:'솔 지구 콘셉시온 아레날 거리 위치, 12년 넘게 운영 중인 마드리드 대표 중식 채식 뷔페. 세이탄·두부로 재현한 탕수육·잡채 등 다양한 메뉴를 합리적 가격에 즐길 수 있음.'},
+  {city:'madrid', cat:'korean', name:'Han Gang (한강)', price:'€€', tag:'한식당 · 평점 4.6', desc:'마드리드의 인기 한식당. 구글 평점 4.6(리뷰 510건)으로 현지에서도 높은 평가, 1인 10~20유로 수준의 합리적인 가격대. 매장 식사와 포장 주문 모두 가능하며 영업 마감은 22:30.'},
+  {city:'madrid', cat:'value', name:'La Posada del Nuncio (라 포사다 델 눈시오)', price:'€€€', tag:'카스티소 요리 · 라 라티나', desc:'라 라티나 지구 눈시오 거리 4번지, 마요르 광장과 보틴에서 도보 거리. 방송에도 출연한 셰프 하비에르 산체스가 운영하며 전통 카스티소 요리에 현대적 감각을 더한 곳. 바삭한 토레스노스와 파타타스 레볼코나스, 카라바냐 텃밭 토마토 요리, 보를레투스 아로스 멜로소가 대표 메뉴이며 치즈 플란·아랍식 타르트 등 디저트도 인기. 나무와 화초로 꾸민 아늑한 실내와 봄·여름 인기 테라스, 1인 50유로 안팎.'},
+  {city:'madrid', cat:'fine', name:'Ramón Freixa Madrid (라몬 프레익사 마드리드)', price:'€€€€', tag:'미쉐린 2스타 · 이전 개업', reserve:true, desc:'카탈루냐 출신 셰프 라몬 프레익사의 미쉐린 2스타 레스토랑. 살라망카 지구 오텔 우니코에 있던 원래 매장은 2024년 12월 문을 닫고, 벨라스케스 거리 24번지에 정통 스페인 요리의 "Tradición"과 파인다이닝 "Atelier" 두 개 콘셉트로 새롭게 문을 열었음. 전통과 아방가르드를 넘나드는 테이스팅 메뉴가 핵심이며 하몬 커팅 바와 칵테일 바도 운영. 방문 전 현재 운영 매장·메뉴 확인 후 사전 예약 필수.'},
+  {city:'madrid', cat:'fine', name:'El Paraguas (엘 파라과스)', price:'€€€€', tag:'아스투리아스 요리 · 살라망카', reserve:true, desc:'살라망카 지구 호르헤 후안 16번지, 아마소니코로 유명한 산드로 실바·마르타 세코 부부의 첫 레스토랑. 파바다·베르디나스·픽신 튀김 등 아스투리아스 정통 요리에 정교한 코스를 더했고 대파와 새우 토스타, 성게 크로케타, 킹크랩 파베스가 시그니처. 제철 버섯·수렵 요리와 방대한 와인 리스트를 갖췄으며 겨울엔 유리로 감싸는 테라스가 매력. 1인 평균 79유로대, 구글 평점 4.3(리뷰 3,100건 이상). 비즈니스 식사로 붐벼 예약 필수.'},
+  {city:'madrid', cat:'fine', name:'Asador Real (아사도르 레알)', price:'€€€', tag:'장작구이 · 전통 아사도르', desc:'이사벨 2세 광장 1번지, 왕궁·오리엔테 광장·테아트로 레알 바로 옆(메트로 오페라역 20m). 1996년부터 장작 화덕에 구운 새끼돼지 통구이(세고비아식 코치니요)와 젖먹이 양 구이가 대표 메뉴이며, 숯불 소갈비(추레톤)·양갈비·생선 구이도 인기. 760㎡ 규모에 돌·나무·벽돌로 꾸민 카스티야풍 살롱 3곳과 여름 테라스를 갖췄고 리베라 델 두에로·리오하 중심 와인 리스트 보유. 12:00~24:00 연중무휴, 인근 주차장 2시간 무료.'},
+
+  {city:'sevilla', cat:'fine', name:'Casa la Viuda', price:'€€€', tag:'전통 미식 명가', desc:"1924년 개업. 대구 요리 '바깔라오 알 에스틸로 라 비우다' 대표."},
+  {city:'sevilla', cat:'value', name:'Eslava', price:'€€', tag:'타파스 · 창의적', desc:'타파스 대회 우승 이력. 전통 타파스를 창의적으로 재해석.'},
+  {city:'sevilla', cat:'value', name:'El Rinconcillo', price:'€€', tag:'타파스 · 전통', desc:'1670년부터 영업, 세비야에서 가장 오래된 타파스 바.'},
+  {city:'sevilla', cat:'rooftop', name:'La Terraza del EME', price:'€€€', tag:'루프탑 · 뷰', desc:'EME 카테드랄 호텔 4층. 세비야 대성당의 웅장한 전경을 감상하며 식사·칵테일.'},
+  {city:'sevilla', cat:'seafood', name:'Mariatrifulca', price:'€€€', tag:'해산물 · 강변뷰', desc:'트리아나 다리 끝 위치. 글로벌·지중해풍 해산물 요리, 과달키비르 강 전망 테라스.'},
+  {city:'sevilla', cat:'value', name:'Bodega Santa Cruz', price:'€', tag:'타파스 · 가성비', desc:'여러 여행 가이드북에 소개된 스테디셀러 로컬 타파스 바.'},
+  {city:'sevilla', cat:'market', name:'Mercado de Triana', price:'€', tag:'마켓 · 푸드홀', desc:'100년 역사의 트리아나 재래시장. 신선한 해산물 타파스와 로컬 먹거리.'},
+  {city:'sevilla', cat:'seafood', name:'El Traga', price:'€€', tag:'문어요리 · 로컬', desc:'뽈뽀(문어) 요리로 유명한 로컬 타파스 맛집. 현지인 단골 많은 활기찬 분위기.'},
+  {city:'sevilla', cat:'dessert', name:'Calentería 1860', price:'€', tag:'츄러스 · 초콜라테리아', desc:'전통 방식의 츄러스·초콜라테를 즐길 수 있는 세비야의 오래된 초콜라테리아.'},
+  {city:'sevilla', cat:'korean', name:'Moon Restaurante', price:'€€', tag:'한식당 · 야외석', desc:'Avenida Menéndez Pelayo 8, 세비야 구시가 동편에 위치한 한식당. 야외 테라스석을 갖추고 있어 날씨 좋은 날 식사하기 좋으며, 리뷰 6건 기준 추천율 100%. 장기 여행 중 한식이 그리울 때 들르기 좋음. 예약·문의 +34 664 41 75 18 / moonkoreanrestaurant1.placeweb.site'},
+  {city:'sevilla', cat:'fine', name:'Casa Manolo León (카사 마놀로 레온)', price:'€€€', tag:'안달루시아 요리 · 저택 정원', reserve:true, desc:'구시가 산 로렌소 지구 과달키비르 거리 8번지, 19세기 말 귀족 저택을 개조해 1999년 레온 형제가 문을 연 세비야의 대표 고급 안달루시아 레스토랑. 2개 층에 성격이 다른 실내 공간 4곳과 안달루시아식 파티오, 2층 비밀 정원까지 갖췄고 분수·오렌지나무·재스민이 어우러진 파티오 자리가 특히 인기(요청해도 배정이 어려울 수 있음). 이베리코 벨로타 하몽, 토마토 보로니아와 하몬을 곁들인 바삭한 아티초크, 마놀로 레온 크로케타, 주름감자를 곁들인 문어 그릴 구이, 새끼돼지 통구이가 대표 메뉴이며 디저트 토시니요 데 시엘로도 유명. 트립어드바이저 평점 4.3(리뷰 1,878건), 더포크 9.2점으로 기념일·로맨틱한 저녁 식사에 어울림. 평일 13:30~16:00·20:00~24:00, 주말은 심야까지 영업하며 저녁 9시 전후로 금세 만석이 되므로 예약 필수.'},
+
+  {city:'granada', cat:'value', name:'Bar Ávila', price:'€', tag:'하몬 아사도 · 무료타파스', desc:'그라나다 특유의 무료 타파스 문화 대표 맛집. 담백하게 익힌 돼지고기를 올린 하몬 아사도가 시그니처.'},
+  {city:'granada', cat:'value', name:'Los Manueles', price:'€€', tag:'그라나다 전통 요리', desc:'날마다 바뀌는 타파스 메뉴를 제공하는 로컬 맛집. 안달루시아 가정식 스타일.'},
+  {city:'granada', cat:'fine', name:'Albidaya', price:'€€€', tag:'미쉐린 가이드 등재', reserve:true, desc:'미쉐린 가이드에 소개된 모던 안달루시아 요리 레스토랑.'},
+  {city:'granada', cat:'value', name:'El Rincón de Julio (엘 링콘 데 훌리오)', price:'€€', tag:'소꼬리찜 · 평점 4.9', reserve:true, desc:'그라나다 타파스 명소로 유명한 나바스 거리 27번지에 위치한 작은 로컬 식당. 다섯 시간 동안 뭉근히 고아낸 소꼬리찜(라보 데 토로)이 시그니처로 결대로 부드럽게 풀어지는 식감이 일품이고, 주인장 훌리오의 장모님 레시피로 만들어 주문 즉시 튀겨내는 닭고기·버섯 크로케타, 갈리시아식 문어, 뼈째 익힌 돼지 정강이(코디요), 대구와 오렌지·양파를 버무린 그라나다 향토 샐러드 레모혼도 인기. 구글 평점 4.9(리뷰 수천 건), 1인 9~23유로대. 훌리오가 직접 손님을 맞는 정겨운 분위기지만 테이블이 5~6개뿐이라 왓츠앱 사전 예약 권장(667 88 00 00). 그라나다답게 음료를 주문하면 무료 타파가 함께 나옴.'},
+  {city:'granada', cat:'value', name:'Perromedio Taberna (페로메디오 타베르나)', price:'€€', tag:'안달루시아 타베르나 · 평점 4.9', reserve:true, desc:'대성당에서 가까운 마르케스 데 헤로나 거리 17번지, "안달루시아의 맛을 담은 타베르나"를 표방하는 인기 로컬 식당. 전통 레시피를 현대적으로 다듬은 소접시 요리가 중심으로 이베리코 하몽, 부라타 샐러드, 하몽 보카디요, 치즈 플레이트가 대표 메뉴이며 치즈케이크와 파르페 등 디저트, 그라나다 최고로 꼽히는 상그리아도 평이 좋음. 리뷰 7,000건 이상 기준 평점 4.9, 1인 10~20유로대. 주인장이 손님 앞에서 직접 요리를 완성해 주고 가족사진으로 꾸민 아늑한 실내가 매력이지만 테이블이 몇 개 없어 저녁에는 예약 없이 자리 잡기 어려움(예약 642 05 47 76). 매일 12:00~16:00, 18:30~24:00 영업. 토마토 샐러드에 함께 나오는 빵은 2유로 별도 과금이니 참고.'},
+  {city:'granada', cat:'korean', name:'한국식당 CHOIBAP 최밥', price:'€€', tag:'한식당 · 평점 4.7', desc:'그라나다 도심 파브리카 비에하 거리, 트리니다드 광장 바로 옆에 자리한 한식당. 양념치킨과 불고기 등 고기 요리, 각종 전, 소주가 대표 메뉴로 손꼽히며 정겨운 분위기와 친절한 서비스, 합리적인 가격대로 현지에서도 인기. 리뷰 1,179건 기준 평점 4.7(구글 평점도 동일)로 그라나다 한식당 중 상위권이며 1인 10~20유로 수준. 채식 손님은 고기를 두부로 바꿔 주문할 수 있음. 문의 958 005 214, 글로보 배달도 가능해 숙소에서 먹기에도 좋음.'},
+  {city:'granada', cat:'korean', name:'Restaurante Coreano Miso (미소)', price:'€€', tag:'한식당 · 그라나다 최초', reserve:true, desc:'알함브라로 오르는 고메레스 언덕길 20번지(센트로 아니마스 거리에도 매장)에 위치한 그라나다 최초의 한식당. 비빔밥·김치·불고기 등 기본에 충실한 메뉴를 갖췄고, 크기와 매운맛 단계를 고르거나 허니 소스로 주문할 수 있는 한국식 프라이드치킨이 가장 인기. 맵지 않은 메뉴와 채식 메뉴도 다양해 일행 구성이 달라도 무난함. 트립어드바이저 평점 4.3(리뷰 119건, 그라나다 1,968개 식당 중 298위), 다른 플랫폼 기준 4.2(리뷰 550건). K-POP이 흐르는 아늑한 분위기로 늘 붐비므로 주말에는 사전 예약 권장(+34 693 059 000 / 858 69 37 24). 알함브라 관람 전후 동선에 두기 좋음.'},
+
+  {city:'valencia', cat:'seafood', name:'La Pepica', price:'€€€', tag:'빠에야 명가 · 1898', desc:'헤밍웨이·오슨 웰스 등이 즐겨 찾던 해변가 파에야 명가. 전통 발렌시아식 조리법 고수.'},
+  {city:'valencia', cat:'seafood', name:'Casa Carmela', price:'€€€', tag:'장작 빠에야 · 1922', desc:'말바로사 해변 위치, 100년 넘게 장작불로 빠에야를 짓는 전통 명가. 20여 종 라이스 요리 선택 가능.'},
+
+  {city:'ronda', cat:'value', name:'Puerta Grande', price:'€€', tag:'소꼬리찜 · 로컬', desc:'누에보 다리 인근. 부드러운 소꼬리찜(라보 데 토로)이 대표 메뉴, 투우·플라멩코 사진 장식.'},
+  {city:'ronda', cat:'rooftop', name:'Duquesa de Parcent', price:'€€€', tag:'협곡뷰', desc:'누에보 다리와 협곡의 아찔한 전망을 감상하며 식사할 수 있는 레스토랑.'},
+  {city:'ronda', cat:'value', name:'Tropicana', price:'€€', tag:'이베리코 · 문어요리', desc:'론다 트립어드바이저 1위. 이베리코 돼지 구이, 갈리시아 스타일 문어 요리로 인기.'},
+
+  {city:'sansebastian', cat:'fine', name:'Arzak', price:'€€€€', tag:'미쉐린 3스타', reserve:true, desc:'1897년 개업, 바스크 누벨퀴진의 대표 명가. 세계 레스토랑 랭킹 상위권.'},
+  {city:'sansebastian', cat:'value', name:'Ganbara', price:'€€', tag:'핀초스 명가', desc:'벽면 가득한 이베리코 햄과 예술적인 핀초스. 버섯·앤초비 핀초와 차콜리 와인이 유명.'},
+  {city:'sansebastian', cat:'value', name:'Casa Urola', price:'€€', tag:'핀초스 바', desc:'구시가(파르테 비에하)에 위치한 인기 핀초스 바.'},
+  {city:'sansebastian', cat:'value', name:'La Cuchara de San Telmo', price:'€€', tag:'타파스 바', desc:'현지인들 사이에서도 손꼽히는 감동적인 타파스 바.'},
+
+  {city:'bilbao', cat:'market', name:'Mercado de la Ribera', price:'€€', tag:'유럽 최대 실내시장', desc:'네르비온 강변의 대형 실내시장. 신선한 해산물과 바스크 핀초스를 다양하게 시식 가능.'},
+  {city:'bilbao', cat:'value', name:'Gilda (리베라 시장)', price:'€', tag:'핀초 원조', desc:'올리브·고추·멸치를 꼬치에 꽂은 원조 핀초 "지다". 화이트 와인 차콜리와 궁합 최고.'},
+  {city:'bilbao', cat:'value', name:'Víctor Montes', price:'€€', tag:'전통 핀초스', desc:'구시장 공간에 위치한 바스크 핀초스 레스토랑. 전통과 현대적 변형 메뉴를 함께 제공.'},
+
+  {city:'zaragoza', cat:'value', name:'El Tubo (타파스 골목)', price:'€', tag:'타파스 골목', desc:'사라고사의 타파스 특구. 한 잔에 타파스 하나씩 맛보며 옆 가게로 이동하는 타파스 호핑 명소.'},
+  {city:'zaragoza', cat:'value', name:'La Republicana', price:'€€', tag:'봄바 레예나', desc:'독특한 정취의 타파스 바. 감자 요리 봄바 레예나가 시그니처 메뉴.'},
+  {city:'zaragoza', cat:'value', name:'La Clandestina', price:'€€', tag:'로컬 요리 · 칵테일', desc:'러스틱 시크한 분위기의 지역 요리·수제 칵테일 맛집.'},
+
+  {city:'avila', cat:'value', name:'Casa Lucio (엘 바르코 데 아빌라)', price:'€€', tag:'콩요리 · 스테이크', desc:'아빌라 지역 명물 유디아스 델 바르코(콩요리)와 스테이크(추레톤)를 합리적인 가격에 즐길 수 있는 로컬 맛집.'},
+
+  {city:'lisboa', cat:'fine', name:'Belcanto', price:'€€€€', tag:'미쉐린 2스타', reserve:true, desc:'셰프 조제 아빌레스. 바이후 알투(시아두) 위치, 모던 포르투갈 요리.'},
+  {city:'lisboa', cat:'fine', name:'Alma', price:'€€€€', tag:'미쉐린 2스타', reserve:true, desc:'18세기 건물(옛 서점 창고) 리노베이션. 혁신적 포르투갈 요리.'},
+  {city:'lisboa', cat:'rooftop', name:'TOPO (마르팀 모니즈 / 시아두)', price:'€€', tag:'루프탑 · 뷰', desc:'마르팀 모니즈점은 상 조르제 성·알파마 조망, 시아두점은 산타 주스타 엘리베이터 조망.'},
+  {city:'lisboa', cat:'seafood', name:'Cervejaria Ramiro', price:'€€€', tag:'해산물 · 가성비', desc:'새우·랑고스타·오이스터 등 대형 해산물 맛집. 대기 필수, 예약 불가.'},
+  {city:'lisboa', cat:'seafood', name:'Uma (우마)', price:'€€', tag:'해물밥 · 해산물', desc:'로시우 광장 인근. 포르투갈식 해물밥 아호스 드 마리스쿠(Arroz de Marisco)가 대표 메뉴.'},
+  {city:'lisboa', cat:'market', name:'Time Out Market', price:'€€', tag:'마켓 · 푸드홀', desc:'약 40개 부스, 미쉐린 셰프 요리를 합리적 가격에 체험 가능.'},
+  {city:'lisboa', cat:'fine', name:'알파마 지구 파두 레스토랑', price:'€€€', tag:'전통 코스 · 공연', reserve:true, desc:'바칼라우 구이, 송아지 스테이크 등 코스요리 + 파두 공연 감상.'},
+  {city:'lisboa', cat:'dessert', name:'Pastéis de Belém', price:'€', tag:'에그타르트 원조', desc:'1837년 개업, 파스텔 드 나타(에그타르트)의 원조. 제로니모스 수도원 레시피 계승. 벨렝 지구, 항상 대기줄.'},
+  {city:'lisboa', cat:'value', name:'El-Rei Dom Frango', price:'€€', tag:'포르투갈식 통닭 · 로컬', desc:'호시우역 인근 칼사다 두 두케 5번지의 작은 로컬 식당(슈하스케이라). 숯불에 구운 포르투갈식 통닭(프랑구 아사두)과 매콤한 피리피리 치킨이 간판 메뉴이며, 문어구이와 바칼라우 아 브라스, 도미구이 등 신선한 생선 요리도 평이 좋음. 오픈 키친의 소박한 나무 테이블 분위기, 리뷰 4,300건 이상 기준 평점 4.6. 좌석이 적고 테라스가 없으며 카드 결제가 안 되는 현금 전용이라 방문 전 현금 준비 필요. 1인 25~30유로 안팎, 월~금 12:00~23:30 영업.'},
+  {city:'lisboa', cat:'value', name:'Lisboa Tu & Eu', price:'€€', tag:'알파마 가족 식당 · 낙서 벽', desc:'알파마 골목(R. Adiça 58)에서 시작한 가족 운영 전통 식당으로, 현재는 에스카디냐스 다스 포르타스 두 마르의 2호점과 프라사 다스 플로레스 45번지 비스트로점도 운영. 정어리구이·문어구이·바칼라우 아 브라스·대구 크림 요리·새우 파스타가 대표 메뉴이고 상그리아가 특히 유명. 식사 후 직원이 매직펜을 건네주면 벽에 글을 남기는 낙서 벽 전통이 명물. 구글 평점 4.6, 좁고 가파른 계단으로만 올라가는 아담한 공간이라 사전 예약 권장, 현금 결제 선호.'},
+  {city:'lisboa', cat:'seafood', name:'Taverna Alfacinha', price:'€€', tag:'해물밥 · 미니 타베르나', reserve:true, desc:'바이샤 지구 사파테이루스 거리 179번지의 아주 작은 전통 타베르나. 포르투갈식 해물밥 아호스 드 마리스쿠와 해산물 파에야가 시그니처이며, 오징어 먹물로 지은 검은 파에야·문어구이·바칼라우도 인기. 양이 푸짐하고 나무 테이블과 아줄레주 타일로 꾸민 러스틱한 실내에 파두 음악이 흐름(라이브 공연은 없음). 리뷰 9,000건 이상 기준 평점 4.9로 최상위권이지만 좌석이 18석 남짓이라 대기가 길어, 사전 예약이 사실상 필수.'},
+  {city:'lisboa', cat:'value', name:'Flor de Lisboa', price:'€', tag:'문어밥 · 현지인 맛집', desc:'관광지에서 살짝 벗어난 피코아스 지구 안드라드 코르부 거리 7B에 위치, 현지인 단골이 많은 소박한 가족 식당. 문어밥(아호스 드 폴부)과 해산물 먹물밥, 정어리구이, 생선 수프, 새우 요리가 대표 메뉴이며 2인분으로 시키면 남을 만큼 양이 넉넉함. 구글 평점 4.4(리뷰 1,300건 이상), 1인 10~15유로대의 저렴한 가격. 매일 09:00~24:00 영업하며 카드 결제와 야외 테라스석도 가능해 접근성이 좋음.'},
+  {city:'lisboa', cat:'chinese', name:'Shoo Loong Kan Hotpot 小龍坎', price:'€€€', tag:'쓰촨 훠궈 · 마라', desc:'2014년 쓰촨·충칭에서 시작해 전 세계 1,000개 이상 매장을 낸 마라 훠궈 브랜드의 리스본 지점. 파르크 다스 나송이스 오리엔테역 건물(Av. Dom João II) 안에 있어 접근이 편리함. 마라·백탕·토마토 육수를 반반으로 고를 수 있고 토마토 육수가 특히 호평, 손으로 썬 소고기와 버섯 모둠·고구마 당면이 추천 메뉴. 2유로 안팎에 소스 바와 과일·젤리를 무제한 이용 가능하며 앞치마 제공, 단체용 룸도 갖춤. 리뷰 7,100건 이상 기준 평점 4.9. 저녁 1인 30~35유로, 평일 12~18시 12.9유로부터 시작하는 점심 메뉴 운영. 매운맛은 절반 단계도 상당히 매우니 주의.'},
+
+  {city:'porto', cat:'fine', name:'Pedro Lemos', price:'€€€€', tag:'미쉐린 스타', reserve:true, desc:'포르투를 대표하는 파인다이닝. 지역 식재료 기반 모던 요리.'},
+  {city:'porto', cat:'fine', name:'Euskalduna Studio', price:'€€€€', tag:'미쉐린 스타', reserve:true, desc:'바스크 x 포르투갈 퓨전 테이스팅 메뉴.'},
+  {city:'porto', cat:'fine', name:'Blind', price:'€€€€', tag:'미쉐린 스타', reserve:true, desc:'셰프 Vítor Matos. 와인 페어링 중심의 세련된 코스.'},
+  {city:'porto', cat:'rooftop', name:'Ribamar', price:'€€', tag:'리버뷰 · 브런치', desc:'도우루 강변 테라스에서 즐기는 에그 요리·연어·샴페인 브런치. 오전 9시경 혼잡, 서둘러 방문 추천.'},
+  {city:'porto', cat:'seafood', name:'히베이라 강변 해산물 그릴', price:'€€€', tag:'해산물', desc:'문어구이(폴보 아 라가레이로), 바칼라우, 정어리구이 등 숯불 해산물. 해 질 녘 강변 야경 추천.'},
+  {city:'porto', cat:'value', name:'Café Santiago', price:'€', tag:'프란세지냐 · 가성비', desc:'프란세지냐 원조 격 인기 맛집. 본점 혼잡 시 분점 이용 추천.'},
+  {city:'porto', cat:'market', name:'Mercado do Bolhão', price:'€', tag:'마켓 · 전통시장', desc:'리뉴얼된 볼량 시장 내 로컬 먹거리, 신선 식재료·간단식.'},
+  {city:'porto', cat:'value', name:'O Buraco', price:'€', tag:'트리파스 · 전통 로컬', desc:'볼량 시장 인근, 50년 넘은 전통 로컬 식당. 요일별 특선(금요일 트리파스·초리조·콩 요리)으로 현지인에게 인기.'},
+
+  {city:'obidos', cat:'dessert', name:'오비두스 진지냐 초콜릿컵', price:'€', tag:'체리술 · 초콜릿컵', desc:'체리 리큐르 진지냐를 초콜릿 컵에 담아 마시는 오비두스 명물. 2002년 현지 상점에서 시작해 포르투갈 전역으로 퍼진 명소 체험.'},
+
+  {city:'nazare', cat:'seafood', name:"Taberna d'Adélia", price:'€€', tag:'해산물 · 오븐구이', desc:'어시장에서 직접 고른 신선한 생선을 오븐에 구워내는 해산물 전문점. 빵스튜(아소르다)와 함께 즐기기 좋음.'},
+
+  // ── 2026-09 신규 로컬 맛집 추가분 ──────────────────────────────
+  {city:'madrid', cat:'value', name:'La Bola', price:'€€', tag:'코시도 마드릴레뇨 · 150년 전통', desc:'칼레 데 라 볼라 5번지, 1870년 개업한 마드리드 대표 코시도 전문 노포. 병아리콩과 소시지, 닭고기를 오래 끓여낸 코시도 마드릴레뇨가 시그니처로, 국물과 건더기를 나눠 내주는 전통 방식 그대로 즐길 수 있음. 150년 넘게 이어진 붉은 인테리어와 개별 항아리에 조리하는 방식이 명물.'},
+  {city:'madrid', cat:'value', name:'Bodega de la Ardosa', price:'€€', tag:'베르뭇 · 1892년 노포 바', certified:true, desc:'칼레 데 콜론 13번지, 1892년 문을 연 현지인 인기 노포 바. 직접 따라주는 베르뭇과 두툼한 감자 토르티야가 대표 메뉴이며, 좁은 공간에 서서 마시는 마드리드 전통 바 분위기가 그대로 남아 있음.'},
+  {city:'madrid', cat:'value', name:'Taberna El Sur', price:'€€', tag:'빠에야 · 구글평점 4.5', certified:true, desc:'현지 평이 좋은 빠에야 맛집으로 구글 평점 4.5. 주말에는 대기줄이 길어지므로 사전 예약을 권장.'},
+  {city:'madrid', cat:'value', name:'Rosi La Roca', price:'€€€', tag:'스페인식 스테이크 · 숨은 맛집', desc:'블로그에 다수 소개된 숨은 스테이크 맛집. 두툼하게 구워내는 스페인식 스테이크가 대표 메뉴.'},
+  {city:'madrid', cat:'dessert', name:'Chocolatería San Ginés', price:'€', tag:'추로스 · 24시간 영업', certified:true, desc:'1894년 개업한 마드리드 필수 코스. 갓 튀긴 추로스를 진한 초콜라테에 찍어 먹는 조합이 시그니처이며 24시간 영업해 이른 아침이나 늦은 밤에도 방문 가능.'},
+
+  {city:'granada', cat:'value', name:'Los Manueles Reyes Católicos', price:'€€', tag:'무료 타파스 · 타파스 3대장', certified:true, desc:'그라나다 타파스 3대장 중 하나로 로컬에게 특히 유명한 곳. 그라나다 전통대로 음료를 주문하면 타파가 무료로 함께 나오며, 잔을 비울수록 다른 타파가 이어져 나옴.'},
+  {city:'granada', cat:'value', name:'EntreBrasas Granada', price:'€€', tag:'스테이크 · 가성비', certified:true, reserve:true, desc:'숯불에 구워내는 스테이크로 현지에서 평이 좋은 맛집. 가격 대비 만족도가 높아 저녁에는 웨이팅이 잦으므로 사전 예약이 사실상 필수.'},
+
+  {city:'sevilla', cat:'value', name:'Pelayo Bar', price:'€€', tag:'감바스 · 타파스바', certified:true, desc:'구시가 카스코 안티구오, C. de Placentines 25번지의 예쁜 분위기 타파스바. 감바스를 비롯한 정통 타파스가 대표 메뉴이며 한국인 블로그에도 다수 언급된 곳.'},
+
+  {city:'toledo', cat:'seafood', name:'La Naviera', price:'€€', tag:'빠에야 · 산토토메 성당 인근', certified:true, desc:'산토토메 성당 근처의 인기 맛집. 빠에야와 감바스, 새우튀김이 대표 메뉴로 웨이팅이 있는 편이라 점심시간에는 일찍 방문하는 편이 좋음.'},
+  {city:'toledo', cat:'value', name:'Cervecería Trebol Toledo', price:'€€', tag:'그릴구이 · 소코도베르 광장', certified:true, desc:'소코도베르 광장에서 도보 1분 거리의 그릴구이 전문점. 분위기가 좋아 오래 머물기 좋으며, 노천 자리는 추가 요금이 붙는 점을 참고할 것.'},
+
+  {city:'segovia', cat:'fine', name:'Restaurante José María', price:'€€€', tag:'코치니요 아사도 · 미쉐린 가이드', certified:true, desc:"세고비아 명물 코치니요 아사도(새끼돼지 통구이) 전문점. '코치니요의 아버지'로 불리는 오너 셰프가 직접 운영하며 미쉐린 가이드에도 소개된 곳. 접시로 껍질을 잘라 보이는 전통 서빙 퍼포먼스가 유명."},
+  {city:'segovia', cat:'fine', name:'Mesón de Cándido', price:'€€€', tag:'코치니요 아사도 · 수도교 앞', certified:true, desc:'로마 수도교 바로 근처에서 1884년부터 영업해 온 세고비아 대표 노포. 코치니요 아사도가 시그니처이며 아틀레티코 마드리드 구단 셰프가 운영하는 곳으로도 알려져 있음. 디저트 폰체 세고비아노도 함께 맛볼 만함.'},
+
+  {city:'ronda', cat:'value', name:'Puerta Grande', price:'€€', tag:'라보 데 토로 · 누에보다리 인근', certified:true, desc:'누에보 다리 근처에 위치한 소꼬리찜(라보 데 토로) 명소. 진한 소스에 푹 익힌 소꼬리찜이 한국인 입맛에 잘 맞는다는 평이 많음.'},
+  {city:'ronda', cat:'value', name:'El Lechuguita', price:'€', tag:'타파스 1.5~5유로 · 초가성비', certified:true, desc:'현지인으로 붐비는 가성비 타파스바로 타파 하나가 1.5~5유로 선. 자리 잡기가 쉽지 않아 오픈 10분 전 줄서기를 권장.'},
+
+  {city:'cordoba', cat:'value', name:'La Luque', price:'€€', tag:'타파스 · 트립어드바이저 1위', certified:true, desc:'트립어드바이저 코르도바 타파스 부문 1위에 오른 인기 타파스집. 차게 먹는 살모레호와 가스파초, 소꼬리찜이 대표 메뉴로 안달루시아 향토 요리를 한자리에서 맛볼 수 있음.'},
+  {city:'cordoba', cat:'value', name:'Casa Pepe de la Judería', price:'€€€', tag:'안달루시아 요리 · 유대인지구', certified:true, desc:'유대인 지구에 자리한 전통 안달루시아 요리 노포. 소꼬리 스튜와 살모레호가 대표 메뉴이며 파티오와 루프탑을 갖춘 옛 저택 구조가 매력.'},
+
+  {city:'valencia', cat:'seafood', name:'La Pepica', price:'€€€', tag:'해산물 파에야 · 125년 전통', certified:true, desc:'말바로사 해변에 위치한 1898년 개업의 125년 전통 파에야 노포. 해산물 파에야가 시그니처이며 헤밍웨이가 단골로 드나든 곳으로도 유명함. 바다를 마주한 넓은 홀에서 식사할 수 있음.'},
+  {city:'valencia', cat:'seafood', name:'Casa Carmela', price:'€€€', tag:'장작불 파에야 · 4대째', certified:true, desc:'말바로사 해변 근처, 1922년부터 4대째 이어온 파에야 전문점. 오렌지나무 장작불로 지어내는 전통 방식을 고수해 은은한 훈연 향이 특징.'},
+
+  {city:'lisboa', cat:'value', name:'Taberna Sal Grosso', price:'€€', tag:'페티스코스 · 알파마 숨은 맛집', certified:true, desc:'알파마 지구의 현지인 줄서는 숨은 타파스집. 염장대구 요리와 마늘새우 등 포르투갈식 페티스코스가 대표 메뉴로, 좌석이 적어 오픈 시간에 맞춰 가는 편이 좋음.'},
+  {city:'lisboa', cat:'value', name:'Cantinho Lusitano', price:'€€', tag:'포르투갈 가정식 · 현지인 단골', certified:true, reserve:true, desc:'포르투갈 가정식을 소접시 타파스로 내는 아담한 식당. 현지인 단골이 많고 공간이 작아 예약 없이는 자리 잡기가 어려움.'},
+  {city:'lisboa', cat:'seafood', name:'Uma', price:'€€', tag:'아호스 드 마리스쿠 · 로시우 인근', certified:true, desc:'로시우 광장 근처의 해물밥 맛집. 국물을 넉넉히 잡아 지은 아호스 드 마리스쿠가 대표 메뉴로 한국인 입맛에 잘 맞는다는 평이 많음.'},
+
+  {city:'porto', cat:'value', name:'Brasão', price:'€€', tag:'프란세지냐 전문', certified:true, desc:'현지인도 즐겨 찾는 프란세지냐 전문점. 빵 사이에 햄과 고기를 넣고 치즈와 진한 소스를 끼얹어 구운 포르투 명물 샌드위치가 대표 메뉴.'},
+  {city:'porto', cat:'value', name:'Piolho / Piocotta', price:'€', tag:'프란세지냐 · 약 6유로', certified:true, desc:'프란세지냐를 6유로 안팎에 맛볼 수 있는 가성비 맛집. 고추볶음 등 간단한 안주류도 인기이며 대학가 특유의 활기찬 분위기가 특징.'},
+
+  {city:'sintra', cat:'value', name:'Tascantiga', price:'€€', tag:'페티스코스 · 가정집 분위기', certified:true, desc:'R. Dr. Alfredo da Costa 22번지, 가정집 같은 분위기의 포르투갈 페티스코스(타파스) 식당. 신트라를 찾는 여행자들이 자주 언급하는 곳으로 왕궁 관람 전후 동선에 두기 좋음.'},
+  {city:'sintra', cat:'dessert', name:'Casa Piriquita', price:'€', tag:'트라베세이로 · 1862년 노포', certified:true, desc:'R. Dr. Alfredo da Costa 22번지 근처, 1862년부터 이어진 신트라 대표 디저트 노포. 길쭉한 베개 모양의 크림 페이스트리 트라베세이로와 치즈 타르트 케이자다가 시그니처.'},
+];
+
+const tabsEl = document.getElementById('tabs');
+const chipsEl = document.getElementById('chips');
+const gridEl = document.getElementById('grid');
+const emptyEl = document.getElementById('empty');
+const searchEl = document.getElementById('search');
+const countryButtons = document.querySelectorAll('#countrytabs button');
+const certifiedToggle = document.getElementById('certifiedToggle');
+
+let activeCountry = 'spain';
+let activeCity = 'barcelona';
+let activeCat = 'all';
+let certifiedOnly = false;
+
+function renderTabs() {
+  const cities = CITIES.filter(c => c.country === activeCountry);
+  tabsEl.innerHTML = '';
+  cities.forEach(c => {
+    const btn = document.createElement('button');
+    btn.textContent = c.name;
+    btn.dataset.city = c.id;
+    if (c.id === activeCity) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      activeCity = c.id;
+      renderTabs();
+      renderGrid();
+    });
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderGrid() {
+  const q = searchEl.value.trim().toLowerCase();
+  const items = R.filter(r => {
+    if (r.city !== activeCity) return false;
+    if (activeCat !== 'all' && r.cat !== activeCat) return false;
+    if (certifiedOnly && !r.certified) return false;
+    if (q && !(r.name.toLowerCase().includes(q) || r.tag.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || (r.reserve && '예약필수'.includes(q)) || (r.certified && '인증맛집'.includes(q)))) return false;
+    return true;
+  });
+  gridEl.innerHTML = '';
+  items.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.cat = r.cat;
+    card.innerHTML = `
+      <div class="top-row"><h3></h3><span class="price"></span></div>
+      <span class="tag"></span>
+      ${r.certified ? '<span class="badge-certified"><img src="badge-verified.svg" alt="">인증맛집</span>' : ''}
+      ${r.reserve ? '<span class="badge-reserve">예약필수</span>' : ''}
+      <p class="desc"></p>
+    `;
+    card.querySelector('h3').textContent = r.name;
+    card.querySelector('.price').textContent = r.price;
+    card.querySelector('.tag').textContent = r.tag;
+    card.querySelector('.desc').textContent = r.desc;
+    gridEl.appendChild(card);
+  });
+  emptyEl.style.display = items.length ? 'none' : 'block';
+}
+
+countryButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    countryButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCountry = btn.dataset.country;
+    activeCity = CITIES.find(c => c.country === activeCountry).id;
+    renderTabs();
+    renderGrid();
+  });
+});
+
+chipsEl.querySelectorAll('button[data-cat]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    chipsEl.querySelectorAll('button[data-cat]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    renderGrid();
+  });
+});
+
+searchEl.addEventListener('input', renderGrid);
+
+certifiedToggle.addEventListener('click', () => {
+  certifiedOnly = !certifiedOnly;
+  certifiedToggle.classList.toggle('active', certifiedOnly);
+  certifiedToggle.setAttribute('aria-pressed', String(certifiedOnly));
+  renderGrid();
+});
+
+renderTabs();
+renderGrid();
+</script>
+</body>
+</html>
